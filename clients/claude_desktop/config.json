@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "kluster-verify": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "--interactive",
+        "kluster-verify-mcp",
+        "--api-key",
+        "YOUR_KLUSTER_AI_API_KEY",
+        "--base-url",
+        "https://api.klusterai.ai/v1"
+      ]
+    }
+  }
+}

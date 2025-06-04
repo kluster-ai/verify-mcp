@@ -1,0 +1,26 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "kluster-api-key",
+      "description": "kluster.ai API Key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "klusterAI": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "kluster-verify-mcp",
+        "--api-key",
+        "${input:kluster-api-key}",
+        "--base-url",
+        "https://api.klusterai.ai/v1"
+      ]
+    }
+  }
+}
