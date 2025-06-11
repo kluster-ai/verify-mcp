@@ -122,7 +122,6 @@ app.post('/tools/:toolName', async (req, res) => {
         );
 
         result = {
-          tool: 'verify',
           claim,
           is_hallucination: apiResult.is_hallucination,
           explanation: apiResult.explanation,
@@ -150,7 +149,6 @@ app.post('/tools/:toolName', async (req, res) => {
         );
 
         result = {
-          tool: 'verify_document',
           claim,
           is_hallucination: apiResult.is_hallucination,
           explanation: apiResult.explanation,
@@ -196,7 +194,6 @@ app.post('/tools/:toolName', async (req, res) => {
     res.status(500).json({
       success: false,
       error: errorMessage,
-      tool: toolName,
       timestamp: new Date().toISOString()
     });
 

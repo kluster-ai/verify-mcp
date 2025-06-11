@@ -309,14 +309,6 @@ console.error(`[DEBUG] API Request:`, JSON.stringify(payload, null, 2));
 console.error(`[DEBUG] Response:`, JSON.stringify(response.data, null, 2));
 ```
 
-## Contributing
-
-1. Fork the repository.
-2. Create a feature branch.
-3. Make your changes.
-4. Test with `npm run lint` and `npm run typecheck`.
-5. Submit a pull request.
-
 ## License
 
 MIT License - see LICENSE file for details.

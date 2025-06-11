@@ -55,7 +55,6 @@ curl -X POST http://localhost:3001/tools/verify \
 {
   "success": true,
   "result": {
-    "tool": "verify",
     "claim": "The Eiffel Tower is located in Rome",
     "is_hallucination": true,
     "explanation": "The response provides a wrong location for the Eiffel Tower...",
