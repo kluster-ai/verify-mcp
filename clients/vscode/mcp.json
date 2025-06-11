@@ -8,7 +8,7 @@
     }
   ],
   "servers": {
-    "klusterAI": {
+    "kluster-verify-mcp": {
       "type": "stdio",
       "command": "docker",
       "args": [
@@ -19,7 +19,7 @@
         "--api-key",
         "${input:kluster-api-key}",
         "--base-url",
-        "https://api.klusterai.ai/v1"
+        "https://api.kluster.ai/v1"
       ]
     }
   }

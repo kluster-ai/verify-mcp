@@ -1,9 +1,9 @@
 import axios, { AxiosInstance } from 'axios';
 
 /**
- * Request interface for kluster.ai hallucination detection API
+ * Request interface for kluster.ai verification API
  */
-export interface HallucinationDetectionRequest {
+export interface VerificationRequest {
   prompt: string;
   output: string;
   context?: string;
@@ -20,9 +20,9 @@ export interface SearchResult {
 }
 
 /**
- * Response from kluster.ai hallucination detection API
+ * Response from kluster.ai verification API
  */
-export interface HallucinationDetectionResponse {
+export interface VerificationResponse {
   is_hallucination: boolean;
   usage: {
     completion_tokens: number;
@@ -34,7 +34,7 @@ export interface HallucinationDetectionResponse {
 }
 
 /**
- * Client for interacting with kluster.ai hallucination detection API
+ * Client for interacting with kluster.ai verification API
  */
 export class KlusterAIClient {
   private client: AxiosInstance;
@@ -55,19 +55,19 @@ export class KlusterAIClient {
   }
 
   /**
-   * Detect hallucinations in text using kluster.ai
+   * Verify claims using kluster.ai
    * @param prompt - The question or instruction for verification
    * @param output - The text/claim to be fact-checked
    * @param context - Optional context to help with detection
    * @param returnSearchResults - Whether to include search results for verification
-   * @returns Promise resolving to detection results
+   * @returns Promise resolving to verification results
    */
-  async detectHallucination(
+  async verifyClaim(
     prompt: string,
     output: string,
     context?: string,
     returnSearchResults = true
-  ): Promise<HallucinationDetectionResponse> {
+  ): Promise<VerificationResponse> {
     try {
       // Only include defined fields to match exact API format
       const payload: any = {
@@ -85,8 +85,8 @@ export class KlusterAIClient {
       // Optional: Enable debug logging in development
       // console.error(`[DEBUG] API Request:`, JSON.stringify(payload, null, 2));
 
-      const response = await this.client.post<HallucinationDetectionResponse>(
-        '/judges/verify',
+      const response = await this.client.post<VerificationResponse>(
+        '/verify/reliability',
         payload
       );
 
@@ -101,7 +101,7 @@ export class KlusterAIClient {
         console.error(`Response status:`, error.response.status);
         console.error(`Response data:`, error.response.data);
       }
-      throw new Error(`Failed to detect hallucination: ${error.message}`);
+      throw new Error(`Failed to verify claim: ${error.message}`);
     }
   }
 }

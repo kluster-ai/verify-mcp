@@ -12,12 +12,12 @@
     "start:n8n": "node build/clients/n8n/sse-server.js",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "docker:build": "docker build -t kluster-ai-hallucination-mcp .",
-    "docker:run": "docker run --rm -i --env-file .env kluster-ai-hallucination-mcp",
+    "docker:build": "docker build -t kluster-verify-mcp .",
+    "docker:run": "docker run --rm -i --env-file .env kluster-verify-mcp",
     "docker:compose:up": "docker-compose up --build",
     "docker:compose:down": "docker-compose down"
   },
-  "keywords": ["mcp", "kluster.ai", "hallucination-detection", "fact-checking"],
+  "keywords": ["mcp", "kluster.ai", "verification", "fact-checking"],
   "author": "",
   "license": "MIT",
   "dependencies": {

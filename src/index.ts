@@ -4,7 +4,7 @@
  * MCP Server for kluster verify
  * 
  * This server provides fact-checking tools that integrate with kluster.ai's
- * hallucination detection API to verify claims against reliable sources.
+ * verification API to verify claims against reliable sources.
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -24,18 +24,18 @@ program
   .name('kluster-verify-mcp')
   .description('MCP server for kluster verify')
   .option('--api-key <key>', 'kluster.ai API key')
-  .option('--base-url <url>', 'kluster.ai base URL', 'https://api-r.klusterai.dev/v1')
+  .option('--base-url <url>', 'kluster.ai base URL', 'https://api.kluster.ai/v1')
   .parse();
 
 const options = program.opts();
 
 // Get configuration from CLI args or environment variables
-const apiKey = options.apiKey || process.env.KLUSTER_AI_API_KEY;
-const baseUrl = options.baseUrl || process.env.KLUSTER_AI_BASE_URL || 'https://api-r.klusterai.dev/v1';
+const apiKey = options.apiKey || process.env.KLUSTER_API_KEY;
+const baseUrl = options.baseUrl || process.env.KLUSTER_AI_BASE_URL || 'https://api.kluster.ai./v1';
 
 // Validate required configuration
 if (!apiKey) {
-  console.error('Error: API key is required. Provide it via --api-key argument or KLUSTER_AI_API_KEY environment variable.');
+  console.error('Error: API key is required. Provide it via --api-key argument or KLUSTER_API_KEY environment variable.');
   process.exit(1);
 }
 
@@ -58,14 +58,14 @@ const server = new Server(
 // Define available MCP tools
 const tools: Tool[] = [
   {
-    name: 'fact_check',
-    description: 'Fact-check a claim against reliable sources using kluster.ai',
+    name: 'verify',
+    description: 'Verify claims against reliable sources using kluster.ai Verify service. This tool fact-checks statements by analyzing them against authoritative sources and returns detailed verification results.',
     inputSchema: {
       type: 'object',
       properties: {
         claim: {
           type: 'string',
-          description: 'The claim to fact-check',
+          description: 'The claim to verify',
         },
         return_search_results: {
           type: 'boolean',
@@ -77,8 +77,8 @@ const tools: Tool[] = [
     },
   },
   {
-    name: 'verify_document_claim',
-    description: 'Verify if a user\'s claim accurately reflects the content of a source document. Use this when a user makes a statement about what a document says or contains. Provide the document content and the user\'s interpretation to check for accuracy.',
+    name: 'verify_document',
+    description: 'Verify if a user\'s claim accurately reflects the content of a source document using kluster.ai Verify service. Use this when a user makes a statement about what a document says or contains. Provide the document content and the user\'s interpretation to check for accuracy against the source.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -115,14 +115,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
-    if (name === 'fact_check') {
+    if (name === 'verify') {
       const claim = args.claim as string;
       const returnSearchResults = (args.return_search_results as boolean) ?? true;
       
       // Prepare the prompt for fact checking
       const prompt = 'Please verify this claim for accuracy:';
       
-      const response = await klusterClient.detectHallucination(
+      const response = await klusterClient.verifyClaim(
         prompt,
         claim,
         undefined, // No context needed for simple fact-checking
@@ -136,15 +136,15 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: 'text',
             text: JSON.stringify({
               claim,
-              is_accurate: !response.is_hallucination,
+              is_hallucination: response.is_hallucination,
               explanation: response.explanation,
-              confidence: response.usage,
+              usage: response.usage,
               search_results: response.search_results,
             }, null, 2),
           },
         ],
       };
-    } else if (name === 'verify_document_claim') {
+    } else if (name === 'verify_document') {
       const claim = args.claim as string;
       const documentContent = args.document_content as string;
       const returnSearchResults = (args.return_search_results as boolean) ?? true;
@@ -152,7 +152,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // Use document content as context for verification
       const prompt = 'Does this claim accurately reflect the provided document content?';
       
-      const response = await klusterClient.detectHallucination(
+      const response = await klusterClient.verifyClaim(
         prompt,
         claim,
         documentContent, // Document content as context - this is the key!
@@ -166,9 +166,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             type: 'text',
             text: JSON.stringify({
               claim,
-              is_accurate: !response.is_hallucination,
+              is_hallucination: response.is_hallucination,
               explanation: response.explanation,
-              confidence: response.usage,
+              usage: response.usage,
               search_results: response.search_results,
             }, null, 2),
           },

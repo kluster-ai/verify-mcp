@@ -32,7 +32,7 @@ This directory contains configuration files for different MCP clients to connect
 
 ### Claude Desktop
 1. Copy the content from `claude_desktop/config.json`
-2. Replace `YOUR_KLUSTER_AI_API_KEY` with your actual API key
+2. Replace `YOUR_KLUSTER_API_KEY` with your actual API key
 3. Add to your Claude Desktop configuration file
 4. Restart Claude Desktop
 
@@ -68,5 +68,5 @@ docker build -t kluster-verify-mcp .
 ## Available Tools
 
 Both clients support:
-- **`fact_check`**: Verify standalone claims against reliable sources
-- **`verify_document_claim`**: Verify claims against document content (with automatic document parsing in supported clients)
+- **`verify`**: Verify standalone claims against reliable sources using kluster.ai Verify service
+- **`verify_document`**: Verify claims against document content using kluster.ai Verify service (with automatic document parsing in supported clients)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Simple SSE MCP Server for n8n Integration
+ * Simple SSE MCP Server for kluster.ai Verify
  * 
  * Creates an HTTP server with SSE endpoints that n8n MCP Tool can connect to.
  * This bypasses the need for MCP SDK SSE transport and creates a standard HTTP API.
@@ -17,21 +17,21 @@ const program = new Command();
 
 program
   .name('kluster-ai-sse-server')
-  .description('SSE HTTP server for kluster.ai integration with n8n')
+  .description('SSE HTTP server for kluster.ai Verify')
   .option('--api-key <key>', 'kluster.ai API key')
-  .option('--base-url <url>', 'kluster.ai base URL', 'https://api.klusterai.ai/v1')
+  .option('--base-url <url>', 'kluster.ai base URL', 'https://api.kluster.ai/v1')
   .option('--port <port>', 'HTTP server port', '3001')
   .parse();
 
 const options = program.opts();
 
 // Get configuration
-const apiKey = options.apiKey || process.env.KLUSTER_AI_API_KEY;
-const baseUrl = options.baseUrl || process.env.KLUSTER_AI_BASE_URL || 'https://api.klusterai.ai/v1';
+const apiKey = options.apiKey || process.env.KLUSTER_API_KEY;
+const baseUrl = options.baseUrl || process.env.KLUSTER_AI_BASE_URL || 'https://api.kluster.ai/v1';
 const port = parseInt(options.port) || 3001;
 
 if (!apiKey) {
-  console.error('❌ Error: API key is required. Use --api-key or KLUSTER_AI_API_KEY');
+  console.error('❌ Error: API key is required. Use --api-key or KLUSTER_API_KEY');
   process.exit(1);
 }
 
@@ -69,7 +69,7 @@ app.get('/sse', (req, res) => {
     type: 'connection',
     message: 'Connected to kluster.ai MCP SSE server',
     timestamp: new Date().toISOString(),
-    tools: ['fact_check', 'verify_document_claim']
+    tools: ['verify', 'verify_document']
   })}\n\n`);
 
   // Keep-alive ping every 30 seconds
@@ -107,14 +107,14 @@ app.post('/tools/:toolName', async (req, res) => {
 
     let result;
     switch (toolName) {
-      case 'fact_check': {
+      case 'verify': {
         const { claim, return_search_results = true } = args;
         
         if (typeof claim !== 'string') {
           throw new Error('Claim must be a string');
         }
 
-        const apiResult = await klusterClient.detectHallucination(
+        const apiResult = await klusterClient.verifyClaim(
           'Please verify this claim for accuracy:',
           claim,
           undefined,
@@ -122,17 +122,17 @@ app.post('/tools/:toolName', async (req, res) => {
         );
 
         result = {
-          tool: 'fact_check',
+          tool: 'verify',
           claim,
-          is_accurate: !apiResult.is_hallucination,
+          is_hallucination: apiResult.is_hallucination,
           explanation: apiResult.explanation,
-          confidence: apiResult.usage,
+          usage: apiResult.usage,
           search_results: apiResult.search_results || [],
         };
         break;
       }
 
-      case 'verify_document_claim': {
+      case 'verify_document': {
         const { claim, document_content, return_search_results = true } = args;
         
         if (typeof claim !== 'string') {
@@ -142,7 +142,7 @@ app.post('/tools/:toolName', async (req, res) => {
           throw new Error('Document content must be a string');
         }
 
-        const apiResult = await klusterClient.detectHallucination(
+        const apiResult = await klusterClient.verifyClaim(
           'Does this claim accurately reflect the provided document content?',
           claim,
           document_content,
@@ -150,11 +150,11 @@ app.post('/tools/:toolName', async (req, res) => {
         );
 
         result = {
-          tool: 'verify_document_claim',
+          tool: 'verify_document',
           claim,
-          is_accurate: !apiResult.is_hallucination,
+          is_hallucination: apiResult.is_hallucination,
           explanation: apiResult.explanation,
-          confidence: apiResult.usage,
+          usage: apiResult.usage,
           search_results: apiResult.search_results || [],
         };
         break;
@@ -222,16 +222,16 @@ app.get('/tools', (req, res) => {
   res.json({
     tools: [
       {
-        name: 'fact_check',
-        description: 'Fact-check a claim against reliable sources using kluster.ai',
+        name: 'verify',
+        description: 'Verify claims against reliable sources using kluster.ai Verify service',
         parameters: {
-          claim: { type: 'string', required: true, description: 'The claim to fact-check' },
+          claim: { type: 'string', required: true, description: 'The claim to verify' },
           return_search_results: { type: 'boolean', required: false, description: 'Whether to return search results' }
         }
       },
       {
-        name: 'verify_document_claim',
-        description: 'Verify if a user\'s claim accurately reflects document content',
+        name: 'verify_document',
+        description: 'Verify if a user\'s claim accurately reflects document content using kluster.ai Verify service',
         parameters: {
           claim: { type: 'string', required: true, description: 'The claim to verify' },
           document_content: { type: 'string', required: true, description: 'The source document content' },
@@ -254,8 +254,8 @@ app.get('/health', (req, res) => {
     endpoints: {
       sse: '/sse',
       tools: '/tools',
-      factCheck: '/tools/fact_check',
-      verifyDocument: '/tools/verify_document_claim',
+      verify: '/tools/verify',
+      verifyDocument: '/tools/verify_document',
       health: '/health'
     },
     timestamp: new Date().toISOString()
@@ -275,11 +275,11 @@ app.listen(port, () => {
   console.log(`   • Tool Type: HTTP Request`);
   console.log(`   • Base URL: http://localhost:${port}`);
   console.log(`   • SSE URL: http://localhost:${port}/sse`);
-  console.log(`   • Fact Check: POST /tools/fact_check`);
-  console.log(`   • Verify Document: POST /tools/verify_document_claim`);
+  console.log(`   • Verify: POST /tools/verify`);
+  console.log(`   • Verify Document: POST /tools/verify_document`);
   
   console.log(`\n📖 Usage Examples:`);
-  console.log(`   curl -X POST http://localhost:${port}/tools/fact_check \\`);
+  console.log(`   curl -X POST http://localhost:${port}/tools/verify \\`);
   console.log(`     -H "Content-Type: application/json" \\`);
-  console.log(`     -d '{"claim": "The Earth is flat"}'`);
+  console.log(`     -d '{"claim": "The Eiffel Tower is located in Rome"}'`);
 });
