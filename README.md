@@ -1,278 +1,86 @@
-# kluster verify MCP Server
+# Self-hosted MCP
 
-A production-ready Model Context Protocol (MCP) server that integrates with kluster.ai's verification API to provide fact-checking capabilities for AI applications.
+ [kluster.ai's](https://www.kluster.ai/) HTTP Streamable MCP self-hosted server. Deploy locally with two powerful tools: `verify` for fact-checking claims and `verify_document` for document validation.
 
-## Features
+**Need easier hosting?** Try our [Cloud MCP](https://platform.kluster.ai/mcp) for instant setup without deployment. 
 
-- **Fact Checking**: Verify claims against reliable sources using kluster.ai's AI-powered analysis
-- **Search Results**: Get contextual search results for verification and source checking
-- **Docker Support**: Containerized deployment for consistent environments
-- **TypeScript**: Full type safety and modern development experience
-- **MCP Integration**: Seamless integration with Claude Desktop and other MCP clients
 
-## Quick Start
+## Prerequisites
 
-### Prerequisites
+- **A kluster.ai account**: Sign up on the [kluster.ai platform ](https://platform.kluster.ai/signup) if you don't have one.
+- **A kluster.ai API key**: After signing in, go to the [**API Keys**](https://platform.kluster.ai/apikeys) section and create a new key. For detailed instructions, check out the [Get an API key](/get-started/get-api-key/) guide.
+- **Docker** or **Node.js 18+**.
+- **Git** for cloning the repository.
+- **[Claude desktop](https://claude.ai/download)** for testing the integration but you can use your preffered MCP client.
 
-- Docker installed on your system
-- A kluster.ai API key ([get one here](https://kluster.ai))
-- Claude Desktop (for testing)
+## Get started
 
-### Installation
+### 1. Clone and setup
 
-1. **Clone or download this repository**
+Download the MCP server code to your local machine:
 
-2. **Build the Docker image:**
-   ```bash
-   npm run docker:build
-   ```
-
-3. **Configure your MCP client** (Claude Desktop or VS Code):
-   
-   Choose your preferred client and follow the setup guide in the `clients/` directory:
-   - **Claude Desktop**: See `clients/claude_desktop/config.json`
-   - **VS Code Copilot Chat**: See `clients/vscode/mcp.json`
-
-4. **Replace `YOUR_KLUSTER_AI_API_KEY`** with your actual API key
-
-5. **Restart your MCP client** to load the new server
-
-## Usage
-
-The server provides two powerful tools for verification and fact-checking:
-
-### 1. Fact Checking Tool (`fact_check`)
-
-Verify standalone claims against reliable sources:
-
-```json
-{
-  "claim": "The Earth is flat",
-  "return_search_results": true
-}
+```bash
+git clone https://github.com/kluster-ai/verify-mcp
+cd verify-mcp
 ```
 
-**Response:**
+### 2. Deploy server
+
+Start your local MCP server using Docker or Node.js. Replace `YOUR_API_KEY` with your actual kluster.ai API key:
+
+**Docker (recommended):**
+```bash
+docker build -t kluster-verify-mcp .
+docker run --rm -p 3001:3001 kluster-verify-mcp --api-key YOUR_API_KEY
+```
+
+**Node.js:**
+```bash
+npm install
+npm run build
+npm start -- --api-key YOUR_API_KEY
+```
+
+The server starts on `http://localhost:3001` with MCP endpoint at `/stream`.
+
+### 3. Add to Claude Desktop
+
+Connect Claude Desktop to your local server by adding this configuration to your `claude_desktop_config.json` file:
+
 ```json
 {
-  "claim": "The Earth is flat",
-  "is_accurate": false,
-  "explanation": "This claim contradicts well-established scientific evidence...",
-  "confidence": {
-    "completion_tokens": 150,
-    "prompt_tokens": 50,
-    "total_tokens": 200
-  },
-  "search_results": [
-    {
-      "title": "NASA - Earth's Shape",
-      "snippet": "Scientific evidence shows Earth is spherical...",
-      "link": "https://nasa.gov/..."
+  "mcpServers": {
+    "kluster-verify": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "http://localhost:3001/stream"
+      ]
     }
-  ]
+  }
 }
 ```
 
-**Parameters:**
-- **`claim`** (required): The statement to fact-check
-- **`return_search_results`** (optional): Whether to include search results for verification (default: true)
+**Important:** Restart Claude desktop after modifying the configuration file for changes to take effect.
 
----
+![Add server to Claude Desktop](docs/images/get-started/get-started-1.webp)
 
-### 2. Document Claim Verification (`verify_document_claim`)
+### 4. Start verifying
 
-Verify if a user's claim accurately reflects the content of a source document. This tool is perfect for checking interpretations, quotes, or data extractions from documents.
+Once connected, you can use the verification tools directly in Claude desktop conversations:
 
-**How it works:**
-1. Upload or paste a document into Claude Desktop
-2. Make a claim about what the document says
-3. Claude automatically uses this tool to verify your interpretation against the actual document content
+![Start using verification tools](docs/images/get-started/get-started-2.webp)
 
-```json
-{
-  "claim": "This research paper proves that coffee reduces cancer risk by 25%",
-  "document_content": "[Full document text automatically provided by Claude]",
-  "return_search_results": true
-}
-```
+## Available tools
 
-**Response:**
-```json
-{
-  "claim": "This research paper proves that coffee reduces cancer risk by 25%",
-  "is_accurate": false,
-  "explanation": "The document states coffee may reduce cancer risk by 15-20%, not 25%. The claim overstates the findings...",
-  "confidence": {
-    "completion_tokens": 180,
-    "prompt_tokens": 1200,
-    "total_tokens": 1380
-  },
-  "search_results": [
-    {
-      "title": "Coffee and Cancer Research Review",
-      "snippet": "Recent studies show coffee consumption linked to reduced cancer risk...",
-      "link": "https://example.com/coffee-cancer-study"
-    }
-  ]
-}
-```
+- **`verify`** - Fact-check claims against reliable sources.
+- **`verify_document`** - Verify claims about document content.
 
-**Parameters:**
-- **`claim`** (required): Your interpretation or statement about the document
-- **`document_content`** (required): Full text of the source document (automatically filled by Claude)
-- **`return_search_results`** (optional): Whether to include additional search results (default: true)
+For detailed parameters and response formats, see the [Tools reference](https://docs.kluster.ai/get-started/mcp/tools/).
 
-**Use Cases:**
-- **Academic Research**: Verify your interpretation of research papers
-- **Legal Documents**: Check understanding of contracts or legal texts  
-- **News Analysis**: Verify claims about what articles actually say
-- **Data Extraction**: Confirm extracted facts match the source
-- **Quote Verification**: Ensure quotes are accurate and in context
+## Configuration
 
-![Document Verification Demo](./docs/images/verify_documents_demo.webp)
-*Document verification workflow: Upload document → Make claim → Get verification*
-
-![Verify Claim Example](./docs/images/verify_claim.webp)
-*Detailed example showing the verify_document_claim tool response*
-
----
-
-### Tool Selection
-
-Claude Desktop automatically chooses the right tool:
-- **`fact_check`**: For general claims without source documents
-- **`verify_document_claim`**: When you're working with a document and make claims about its content
-
-## Client Setup
-
-### Supported MCP Clients
-
-- **Claude Desktop**: Full support with automatic document content parsing
-- **VS Code Copilot Chat**: Agent Mode support with secure API key input
-- **n8n**: Native workflow templates available for SSE deployment
-- **Other MCP clients**: Should work with any MCP-compatible client
-
-See the `clients/` directory for specific setup instructions for each client.
-
-### n8n Integration 🆕
-
-**SSE server for local n8n development** is available in `clients/n8n/`. This provides:
-- **HTTP SSE endpoints** for n8n MCP Tool integration
-- **Real-time tool execution** with event broadcasting
-- **Local development support** (self-hosted n8n instances)
-- **Production deployment ready** with cloud platforms
-
-Quick start: See `clients/n8n/README.md` for setup instructions.
-
-### Command Line Options
-
-- `--api-key <key>`: Your kluster.ai API key (required)
-- `--base-url <url>`: API base URL (default: https://api-r.klusterai.dev/v1)
-
-### Environment Variables
-
-- `KLUSTER_AI_API_KEY`: Alternative way to provide API key
-- `KLUSTER_AI_BASE_URL`: Alternative way to provide base URL
-
-## Development
-
-### Local Development
-
-1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-2. **Build TypeScript:**
-   ```bash
-   npm run build
-   ```
-
-3. **Run locally:**
-   ```bash
-   npm run dev -- --api-key YOUR_API_KEY
-   ```
-
-### Scripts
-
-- `npm run build` - Compile TypeScript to JavaScript
-- `npm run dev` - Run in development mode with tsx
-- `npm start` - Run the built server
-- `npm run lint` - Run ESLint
-- `npm run typecheck` - Type check without emitting files
-- `npm run docker:build` - Build Docker image
-- `npm run docker:run` - Run Docker container
-
-## Architecture
-
-The server consists of two main components:
-
-### KlusterAIClient (`src/kluster-client.ts`)
-- Handles API communication with kluster.ai
-- Manages authentication and request formatting
-- Provides type-safe interfaces for requests/responses
-
-### MCP Server (`src/index.ts`)
-- Implements the Model Context Protocol
-- Exposes the `fact_check` tool
-- Handles CLI arguments and configuration
-- Maps MCP requests to API calls
-
-## API Integration
-
-The server integrates with kluster.ai's `/judges/detect-hallucination` endpoint:
-
-```typescript
-// Request format
-{
-  "prompt": "Please verify this claim for accuracy:",
-  "output": "The claim to be verified",
-  "return_search_results": "true"
-}
-
-// Response format
-{
-  "is_hallucination": boolean,
-  "explanation": string,
-  "usage": { ... },
-  "search_results": [ ... ]
-}
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **404 Errors**: Ensure `--base-url` is set to just the base URL (`https://api-r.klusterai.dev/v1`), not the full endpoint path
-
-2. **Authentication Errors**: Verify your API key is correct and has proper permissions
-
-3. **Docker Issues**: Make sure Docker is running and the image is built correctly
-
-### Debug Mode
-
-Enable debug logging in development by uncommenting the debug lines in `src/kluster-client.ts`:
-
-```typescript
-// Uncomment for debugging
-console.error(`[DEBUG] API Request:`, JSON.stringify(payload, null, 2));
-console.error(`[DEBUG] Response:`, JSON.stringify(response.data, null, 2));
-```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with `npm run lint` and `npm run typecheck`
-5. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Support
-
-- Documentation: This README
-- Issues: Create an issue in the repository
-- kluster.ai API: [Official Documentation](https://kluster.ai/docs)
+**CLI options:**
+- `--api-key <key>` - kluster.ai API key.
+- `--base-url <url>` - kluster.ai base URL.
+- `--port <port>` - Server port (default: 3001).
