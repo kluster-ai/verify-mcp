@@ -37,11 +37,8 @@ if (!apiKey) {
   process.exit(1);
 }
 
-const baseUrl = options.baseUrl || process.env.KLUSTER_AI_BASE_URL || 'https://api.kluster.ai/v1';
+const baseUrl = options.baseUrl || process.env.KLUSTER_BASE_URL || 'https://api.kluster.ai/v1';
 const port = parseInt(options.port) || 3001;
-
-// Initialize kluster.ai client
-const klusterClient = new KlusterAIClient(apiKey, baseUrl);
 
 /**
  * Creates an MCP server instance with kluster.ai Verify tools

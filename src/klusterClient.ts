@@ -2,6 +2,17 @@ import axios, { AxiosInstance } from 'axios';
 import type { VerificationResponse } from './types.js';
 
 /**
+ * Request payload for kluster.ai verification API
+ */
+interface VerifyClaimPayload {
+  model: string;
+  prompt: string;
+  output: string;
+  return_search_results: boolean;
+  context?: string;
+}
+
+/**
  * Client for interacting with kluster.ai verification API
  */
 export class KlusterAIClient {
@@ -37,11 +48,11 @@ export class KlusterAIClient {
     returnSearchResults = true
   ): Promise<VerificationResponse> {
     try {
-      const payload: any = {
+      const payload: VerifyClaimPayload = {
         model: 'klusterai/verify-agent',
         prompt,
         output,
-        return_search_results: returnSearchResults ? 'true' : 'false',
+        return_search_results: returnSearchResults,
       };
       
       // Only add context if it's defined
