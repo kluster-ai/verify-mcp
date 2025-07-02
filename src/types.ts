@@ -29,8 +29,9 @@ export interface VerificationResponse {
  * Transformed response for MCP clients
  */
 export interface MCPVerificationResult {
-  claim: string;
-  is_accurate: boolean;
+  prompt: string;
+  response: string;
+  is_hallucination: boolean;
   explanation: string;
   confidence: {
     completion_tokens: number;
