@@ -1,6 +1,6 @@
 # Self-hosted MCP
 
- [kluster.ai's](https://www.kluster.ai/) HTTP Streamable MCP self-hosted server. Deploy locally with two powerful tools: `verify` for fact-checking claims and `verify_document` for document validation.
+ [kluster.ai's](https://www.kluster.ai/) HTTP Streamable MCP self-hosted server. Deploy locally with two powerful tools: `verify` for fact-checking a prompt from a user and response from the agent, and `verify_document` for document validation.
 
 **Need easier hosting?** Try our [Cloud MCP](https://platform.kluster.ai/mcp) for instant setup without deployment. 
 
@@ -73,8 +73,8 @@ Once connected, you can use the verification tools directly in Claude desktop co
 
 ## Available tools
 
-- **`verify`** - Fact-check claims against reliable sources.
-- **`verify_document`** - Verify claims about document content.
+- **`verify`** - Fact-check a prompt from a user and response from the agent against reliable sources.
+- **`verify_document`** - Verify if a response from the agent accurately reflects document content based on the user's prompt.
 
 For detailed parameters and response formats, see the [Tools reference](https://docs.kluster.ai/get-started/mcp/tools/).
 

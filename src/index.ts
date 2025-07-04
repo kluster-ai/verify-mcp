@@ -62,31 +62,33 @@ function createMcpServer(serverApiKey?: string): McpServer {
   // Tool 1: verify
   mcpServer.tool(
     'verify',
-    'Fact-check a claim against reliable sources using kluster.ai',
+    'Fact-check a prompt from a user and response from the agent against reliable sources using kluster.ai',
     {
-      claim: z.string().describe('The claim to fact-check'),
+      prompt: z.string().describe('The prompt the user made to the agent. If there are multiple prompts please do multiple calls.'),
+      response: z.string().describe('The response from the agent that must be verified. If there are multiple responses for the same prompt please combine them into a single response. This parameter should never be empty.'),
       returnSearchResults: z
         .boolean()
         .describe('Whether to return search results for verification')
         .default(true),
     },
-    async ({ claim, returnSearchResults }) => {
+    async ({ prompt, response, returnSearchResults }) => {
       try {
         // Create client with effective API key
         const client = new KlusterAIClient(effectiveApiKey, baseUrl);
         
         // Call kluster.ai API
         const result = await client.verifyClaim(
-          'Please verify this claim for accuracy:',
-          claim,
+          prompt,
+          response,
           undefined,
           returnSearchResults
         );
 
         // Transform response to match expected format
         const mcpResult: MCPVerificationResult = {
-          claim,
-          is_accurate: !result.is_hallucination, 
+          prompt,
+          response,
+          is_hallucination: result.is_hallucination, 
           explanation: result.explanation,
           confidence: result.usage, 
           search_results: result.search_results || [],
@@ -117,11 +119,14 @@ function createMcpServer(serverApiKey?: string): McpServer {
   // Tool 2: verify_document
   mcpServer.tool(
     'verify_document',
-    'Verify if a user\'s claim accurately reflects the content of a source document',
+    'Verify if a response from the agent accurately reflects the content of a source document based on the user\'s prompt',
     {
-      claim: z
+      prompt: z
         .string()
-        .describe('The user\'s claim or interpretation about what the document contains'),
+        .describe('The prompt the user made to the agent about the document. If there are multiple prompts please do multiple calls.'),
+      response: z
+        .string()
+        .describe('The response from the agent that must be verified against the document content. If there are multiple responses for the same prompt please combine them into a single response. This parameter should never be empty.'),
       documentContent: z
         .string()
         .describe('The full text content of the source document that the claim is about'),
@@ -130,25 +135,26 @@ function createMcpServer(serverApiKey?: string): McpServer {
         .describe('Whether to return additional search results for cross-verification')
         .default(true),
     },
-    async ({ claim, documentContent, returnSearchResults }) => {
+    async ({ prompt, response, documentContent, returnSearchResults }) => {
       try {
         // Create client with effective API key
         const client = new KlusterAIClient(effectiveApiKey, baseUrl);
         
         // Call kluster.ai API with document context
         const result = await client.verifyClaim(
-          'Does this claim accurately reflect the provided document content?',
-          claim,
+          prompt,
+          response,
           documentContent,
           returnSearchResults
         );
 
         // Transform response to match expected format
         const mcpResult: MCPVerificationResult = {
-          claim,
-          is_accurate: !result.is_hallucination, // Critical transformation
+          prompt,
+          response,
+          is_hallucination: result.is_hallucination, 
           explanation: result.explanation,
-          confidence: result.usage, // Rename usage to confidence
+          confidence: result.usage, 
           search_results: result.search_results || [],
         };
 
